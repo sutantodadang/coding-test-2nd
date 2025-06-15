@@ -1,38 +1,65 @@
 from typing import List, Tuple
 from langchain.schema import Document
-from langchain.vectorstores import VectorStore
 from config import settings
 import logging
+
+# Chroma and Embeddings imports
+from langchain_community.vectorstores import Chroma
+from langchain.embeddings import OllamaEmbeddings
 
 logger = logging.getLogger(__name__)
 
 
 class VectorStoreService:
     def __init__(self):
-        # TODO: Initialize vector store (ChromaDB, FAISS, etc.)
-        pass
-    
+        """Initialize vector store service"""
+        self.embeddings = OllamaEmbeddings(
+            base_url=settings.ollama_server_url,
+            model=settings.embedding_model,
+            num_gpu=settings.embedding_num_gpu,
+            num_thread=settings.embedding_num_thread,
+            show_progress=True,
+        )
+        """Initialize Chroma vector store"""
+        self.vectordb = Chroma(
+            persist_directory=settings.vector_db_path,
+            embedding_function=self.embeddings,
+        )
+
     def add_documents(self, documents: List[Document]) -> None:
         """Add documents to the vector store"""
-        # TODO: Implement document addition to vector store
-        # - Generate embeddings for documents
-        # - Store documents with embeddings in vector database
-        pass
-    
-    def similarity_search(self, query: str, k: int = None) -> List[Tuple[Document, float]]:
+        import time
+
+        if not documents:
+            logger.warning("No documents to add to vector store.")
+            return
+        logger.info(f"Adding {len(documents)} documents to vector store...")
+        start = time.time()
+        batch_size = 100
+        for i in range(0, len(documents), batch_size):
+            batch = documents[i : i + batch_size]
+            self.vectordb.add_documents(batch)
+            logger.info(f"Inserted batch {i // batch_size + 1} ({len(batch)} docs)")
+        self.vectordb.persist()
+        elapsed = round(time.time() - start, 2)
+        logger.info(
+            f"Added {len(documents)} documents to vector store in {elapsed} seconds."
+        )
+
+    def similarity_search(
+        self, query: str, k: int = None
+    ) -> List[Tuple[Document, float]]:
         """Search for similar documents"""
-        # TODO: Implement similarity search
-        # - Generate embedding for query
-        # - Search for similar documents in vector store
-        # - Return documents with similarity scores
-        pass
-    
+        k = k or settings.retrieval_k
+        results = self.vectordb.similarity_search_with_score(query, k=k)
+        return results
+
     def delete_documents(self, document_ids: List[str]) -> None:
         """Delete documents from vector store"""
-        # TODO: Implement document deletion
-        pass
-    
+        self.vectordb.delete(ids=document_ids)
+        self.vectordb.persist()
+        logger.info(f"Deleted {len(document_ids)} documents from vector store.")
+
     def get_document_count(self) -> int:
         """Get total number of documents in vector store"""
-        # TODO: Return document count
-        pass 
+        return self.vectordb._collection.count()
