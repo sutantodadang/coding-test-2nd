@@ -78,7 +78,7 @@ cd backend
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up environment variables (create .env file)
+# Set up environment variables (create .env file/change .env.example to .env)
 OLLAMA_SERVER_URL=http://localhost:11434
 VECTOR_DB_PATH=./vector_store
 PDF_UPLOAD_PATH=../data
@@ -92,6 +92,9 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```bash
 cd frontend
 
+# Set up environment variables (create .env file/change .env.example to .env)
+NEXT_PUBLIC_API_URL=https://api.example.com
+
 # Install dependencies
 bun install
 
@@ -101,7 +104,7 @@ bun run dev
 
 **Note**: If you encounter TypeScript/linting errors:
 
-- Make sure `npm install` completed successfully
+- Make sure `bun install` completed successfully
 - The project includes all necessary configuration files (`tsconfig.json`, `.eslintrc.json`, `next-env.d.ts`)
 - Check that all dependencies are properly installed in `node_modules`
 

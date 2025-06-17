@@ -39,7 +39,11 @@ export default function FileUpload({
       const formData = new FormData();
       formData.append("file", file);
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", "http://localhost:8000/api/upload", true);
+      xhr.open(
+        "POST",
+        `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/upload`,
+        true
+      );
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           setUploadProgress(Math.round((event.loaded / event.total) * 100));

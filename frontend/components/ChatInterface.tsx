@@ -53,16 +53,19 @@ export default function ChatInterface() {
     setIsLoading(true);
     setInput("");
     try {
-      const res = await fetch("http://localhost:8000/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: userMsg.content,
-          chat_history: messages
-            .filter((m) => m.type === "user" || m.type === "assistant")
-            .map((m) => ({ role: m.type, content: m.content })),
-        }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/chat`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: userMsg.content,
+            chat_history: messages
+              .filter((m) => m.type === "user" || m.type === "assistant")
+              .map((m) => ({ role: m.type, content: m.content })),
+          }),
+        }
+      );
       if (!res.body) throw new Error("No response body");
       const reader = res.body.getReader();
       let fullAnswer = "";
